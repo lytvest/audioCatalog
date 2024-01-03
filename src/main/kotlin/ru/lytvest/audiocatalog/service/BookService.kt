@@ -1,6 +1,5 @@
 package ru.lytvest.audiocatalog.service
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -15,7 +14,7 @@ class BookService(
 
     fun saveOrUpdate(book: Book): Book {
         val old = bookRepository.findBookByNameAndAuthor(book.name, book.author)
-        return if (old == null) {
+        val book = if (old == null) {
             println("" + LocalDateTime.now() + " save "  + book)
             bookRepository.save(book)
         } else {
@@ -23,6 +22,9 @@ class BookService(
             println("" + LocalDateTime.now() + " update "  + old)
             bookRepository.save(old)
         }
+
+
+        return book
     }
 
     fun topBooks(): List<Book> {

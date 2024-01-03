@@ -24,9 +24,9 @@
                     <h5 class="card-title">{{book.name}}</h5>
                     <h6 class="card-title">{{book.author}}</h6>
                     <p class="card-text">{{book.annotation}}</p>
-                    {{#check.linksDownload}}
-                        <p class="card-text">{{check.audioRating}}% </p>
-                    {{/check.linksDownload}}
+                    {{#book.countFindLinks}}
+                        <p class="card-text">{{book.audioRating}}% </p>
+                    {{/book.countFindLinks}}
                     {{#links}}
                         <a href="{{href}}" class="btn btn-outline-primary">o</a>
                     {{/links}}

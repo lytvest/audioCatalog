@@ -25,16 +25,21 @@ class SearchController(
 
     ) {
 
-    val count : AtomicInteger = AtomicInteger(0)
+    val count: AtomicInteger = AtomicInteger(0)
 
 
-    @PostConstruct
+    //    @PostConstruct
     fun init() {
         val text = "Меняя маски скачать торрент"
-        val body1 = URLEncoder.encode("query=$text&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1", StandardCharsets.UTF_8)
+        val body1 =
+            URLEncoder.encode("query=$text&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1", StandardCharsets.UTF_8)
 
-        val body2 = "query=%D0%BC%D0%B5%D0%BD%D1%8F%D1%8F+%D0%BC%D0%B0%D1%81%D0%BA%D0%B8+%D1%81%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C+%D1%82%D0%BE%D1%80%D1%80%D0%B5%D0%BD%D1%82&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1"
-        val body3 = "query=" + URLEncoder.encode(text, StandardCharsets.UTF_8) + "&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1"
+        val body2 =
+            "query=%D0%BC%D0%B5%D0%BD%D1%8F%D1%8F+%D0%BC%D0%B0%D1%81%D0%BA%D0%B8+%D1%81%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C+%D1%82%D0%BE%D1%80%D1%80%D0%B5%D0%BD%D1%82&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1"
+        val body3 = "query=" + URLEncoder.encode(
+            text,
+            StandardCharsets.UTF_8
+        ) + "&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1"
 
 //        println(body1)
 //        println(body2)
@@ -50,16 +55,16 @@ class SearchController(
     }
 
     @GetMapping("start")
-    fun searchStart(@RequestParam num: Long): ResponseEntity<String>{
-        if(count.get() == 0) {
+    fun searchStart(@RequestParam num: Long): ResponseEntity<String> {
+        if (count.get() == 0) {
             Thread {
-                for (id in num..10000L) {
+                for (id in num..num + 60L) {
                     count.set(id.toInt())
                     bookService.getById(id)?.let { book ->
                         try {
                             println("$id ############################################################################")
                             println("find by " + book.name + " " + book.author)
-                            val text = book.name + " "+ book.author + " аудиокнига торрент"
+                            val text = book.name + " " + book.author + " аудиокнига торрент"
                             val res = search(text)
 
                             for (p in res) {
@@ -72,7 +77,8 @@ class SearchController(
                         } catch (e: Exception) {
                             System.err.println(e.message)
                         }
-                        Thread.sleep(1000)
+                        println("wait 60 sec")
+                        Thread.sleep(60000)
                     }
                 }
             }.start()
@@ -82,6 +88,66 @@ class SearchController(
     }
 
     fun search(text: String): List<Pair<String, String>> {
+        val apiKey = "AQVNx0plLsyiN5kGe4UHzo-ogU4K2p3qQ8hR8rTm"
+        val query = URLEncoder.encode(text, StandardCharsets.UTF_8)
+        val urlSearch =
+            "https://yandex.ru/search/xml?folderid=b1g6e5qnbphephd58qpk&filter=strict&l10n=ru&apikey=${apiKey}&query=${query}&filter=none"
+
+        val res = skrape(BrowserFetcher) {
+            request {
+                url = urlSearch
+                method = Method.GET
+                headers = mapOf(
+                    "Accept-Language" to "ru,ru-RU",
+                    "Content-Type" to "application/xml",
+                    "Authorization" to "Api-Key $apiKey",
+                    "accept" to "text/html,application/xhtml+xml,application/xml;"
+                )
+//                body = URLEncoder.encode("query=$text&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1", StandardCharsets.UTF_8)
+
+//                body = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+//                        "<request>\n" +
+//                        "    <query>menay masky download torrent</query>\n" +
+//                        "    <sortby>rlv</sortby>\n" +
+//                        "    <groupings>\n" +
+//                        "        <groupby attr=\"d\" mode=\"deep\" groups-on-page=\"5\" docs-in-group=\"1\" />\n" +
+//                        "    </groupings>\n" +
+//                        "    <maxpassages>3</maxpassages>\n" +
+//                        "</request>"
+                timeout = 15000
+            }
+            response {
+                try {
+                    println(responseBody)
+                    htmlDocument(responseBody) {
+                        "doc" {
+
+                            findAll {
+                                map {
+                                    println("---------------------------------------------------------------->")
+                                    val url = it.children.first { it.tagName == "url" }.text
+                                    val title = it.children.first { it.tagName == "title" }.text
+                                    println(url)
+                                    println(title)
+
+
+
+                                    url to title
+
+                                }
+                            }
+                        }
+                    }
+                } catch (e: ElementNotFoundException) {
+                    println(responseBody)
+                    throw e
+                }
+            }
+        }
+        return res
+    }
+
+    fun search2(text: String): List<Pair<String, String>> {
 
         val res = skrape(BrowserFetcher) {
             request {
@@ -96,7 +162,10 @@ class SearchController(
                 )
 //                body = URLEncoder.encode("query=$text&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1", StandardCharsets.UTF_8)
 
-                body = "query=" + URLEncoder.encode(text, StandardCharsets.UTF_8) + "&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1"
+                body = "query=" + URLEncoder.encode(
+                    text,
+                    StandardCharsets.UTF_8
+                ) + "&t=&lui=english&sc=UCXnnsGetHKW20&cat=web&abp=-1"
                 timeout = 15000
             }
             response {
@@ -115,7 +184,7 @@ class SearchController(
                             }
                         }
                     }
-                } catch (e : ElementNotFoundException) {
+                } catch (e: ElementNotFoundException) {
                     println(responseBody)
                     throw e
                 }

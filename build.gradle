@@ -41,8 +41,8 @@ dependencies {
 
 	testCompileOnly 'org.projectlombok:lombok:1.18.24'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
-	implementation 'mysql:mysql-connector-java:8.0.31'
-//	runtimeOnly 'com.h2database:h2'
+//	implementation 'mysql:mysql-connector-java:8.0.31'
+	runtimeOnly 'com.h2database:h2'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

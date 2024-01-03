@@ -42,6 +42,12 @@ class Book {
 
     var image: String = ""
 
+    var lastTimeFindLinks: LocalDateTime? = null
+
+    var countFindLinks: Int = 0
+
+    var audioRating: Double = 0.0
+
     fun copyFrom(book: Book) {
         for(field in book.javaClass.fields) {
             if (field.name != "id") {
