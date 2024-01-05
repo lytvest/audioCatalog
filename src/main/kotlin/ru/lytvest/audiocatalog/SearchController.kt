@@ -1,11 +1,26 @@
 package ru.lytvest.audiocatalog
 
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.http.ContentType
+import io.ktor.serialization.kotlinx.json.*
 import it.skrape.core.htmlDocument
 import it.skrape.fetcher.*
 import it.skrape.selects.ElementNotFoundException
 import it.skrape.selects.and
 import it.skrape.selects.html5.a
-import jakarta.annotation.PostConstruct
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
@@ -26,6 +41,7 @@ class SearchController(
     ) {
 
     val count: AtomicInteger = AtomicInteger(0)
+    val log = LoggerFactory.getLogger(this.javaClass)
 
 
     //    @PostConstruct
@@ -50,41 +66,87 @@ class SearchController(
     @GetMapping("search")
     fun searchSimple(@RequestParam s: String?): ResponseEntity<String> {
         val text = "Меняя маски скачать торрент"
-        val res = search(text)
-        return ResponseEntity.ok(res.joinToString(separator = " <br> "))
+        val res = searchJson(text)
+        return ResponseEntity.ok(res.joinToString(separator = " <br><br> "))
     }
 
     @GetMapping("start")
     fun searchStart(@RequestParam num: Long): ResponseEntity<String> {
         if (count.get() == 0) {
             Thread {
-                for (id in num..num + 60L) {
+                for (id in num..num + 200L) {
                     count.set(id.toInt())
                     bookService.getById(id)?.let { book ->
                         try {
-                            println("$id ############################################################################")
-                            println("find by " + book.name + " " + book.author)
+                            log.info("$id ############################################################################")
+                            log.info("find by " + book.name + " " + book.author)
                             val text = book.name + " " + book.author + " аудиокнига торрент"
-                            val res = search(text)
+                            val res = searchJson(text)
 
                             for (p in res) {
                                 val link = Link()
                                 link.book = book
-                                link.href = p.first
-                                link.text = p.second
+                                link.href = p["url"] ?: ""
+                                link.text = p["text"] ?: ""
+                                link.tags = p["tags"] ?: ""
+                                log.info("save link $link")
                                 linkRepository.save(link)
                             }
                         } catch (e: Exception) {
                             System.err.println(e.message)
                         }
-                        println("wait 60 sec")
-                        Thread.sleep(60000)
+                        log.info("wait 1 sec")
+                        Thread.sleep(1000)
                     }
                 }
             }.start()
         }
         Thread.sleep(6000)
         return ResponseEntity.ok("count -> " + count.get())
+    }
+
+    fun searchJson(text1: String): List<Map<String, String>> {
+
+        val text = text1.replace("#", "")
+
+
+        return runBlocking {
+            val client = HttpClient(CIO) {
+                install(ContentNegotiation) {
+                    json(Json {
+                        prettyPrint = true
+                        isLenient = true
+                    })
+                }
+                install(HttpTimeout.Plugin)
+            }
+            val response = client.post("https://api.apify.com/v2/acts/apify~google-search-scraper/run-sync-get-dataset-items?token=apify_api_4oKFaSgn441tYRodelWz1J5OHH1GyZ3tU6OA") {
+                contentType(ContentType.Application.Json)
+                setBody(mapOf(
+                    "queries" to text
+                ))
+                timeout { requestTimeoutMillis = 600000 }
+            }
+
+            log.info(response.bodyAsText())
+
+            val map: JsonArray = response.body()
+            val list = mutableListOf<Map<String, String>>()
+            map.first().jsonObject["organicResults"]?.jsonArray?.forEach{
+
+                list += mapOf(
+                    "text" to (it.jsonObject["title"]?.toString() ?: "") + (it.jsonObject["description"]?.toString() ?: ""),
+                    "url" to (it.jsonObject["url"]?.toString() ?: ""),
+                    "tags" to (it.jsonObject["emphasizedKeywords"]?.jsonArray?.joinToString() ?: ""),
+                )
+            }
+
+            list.forEach{
+
+            }
+
+            list
+        }
     }
 
     fun search(text: String): List<Pair<String, String>> {
@@ -118,17 +180,17 @@ class SearchController(
             }
             response {
                 try {
-                    println(responseBody)
+                    log.info(responseBody)
                     htmlDocument(responseBody) {
                         "doc" {
 
                             findAll {
                                 map {
-                                    println("---------------------------------------------------------------->")
+                                    log.info("---------------------------------------------------------------->")
                                     val url = it.children.first { it.tagName == "url" }.text
                                     val title = it.children.first { it.tagName == "title" }.text
-                                    println(url)
-                                    println(title)
+                                    log.info(url)
+                                    log.info(title)
 
 
 
@@ -139,7 +201,7 @@ class SearchController(
                         }
                     }
                 } catch (e: ElementNotFoundException) {
-                    println(responseBody)
+                    log.info(responseBody)
                     throw e
                 }
             }
@@ -170,22 +232,22 @@ class SearchController(
             }
             response {
                 try {
-//                println(responseBody)
+//                log.info(responseBody)
                     htmlDocument(responseBody) {
                         a {
                             withClass = "w-gl__result-title" and "result-link"
                             findAll {
                                 map {
-                                    println("---------------------------------------------------------------->")
-                                    println("href " + it.attribute("href"))
-                                    println("text " + it.text)
+                                    log.info("---------------------------------------------------------------->")
+                                    log.info("href " + it.attribute("href"))
+                                    log.info("text " + it.text)
                                     it.attribute("href") to it.text
                                 }
                             }
                         }
                     }
                 } catch (e: ElementNotFoundException) {
-                    println(responseBody)
+                    log.info(responseBody)
                     throw e
                 }
             }

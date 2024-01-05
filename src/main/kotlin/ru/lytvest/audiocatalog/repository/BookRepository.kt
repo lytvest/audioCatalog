@@ -9,4 +9,6 @@ interface BookRepository : JpaRepository<Book, Long> {
     fun findBookByNameAndAuthor(name: String?, author: String?): Book?
 
     fun findBooksBy(pageable: Pageable): List<Book>
+
+    fun findBooksByAudioRatingGreaterThanEqual(rating: Double, pageable: Pageable): List<Book>
 }

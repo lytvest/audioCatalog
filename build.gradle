@@ -3,9 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
 	id 'org.springframework.boot' version '3.0.1'
 	id 'io.spring.dependency-management' version '1.1.0'
-	id 'org.jetbrains.kotlin.jvm' version '1.7.22'
-	id 'org.jetbrains.kotlin.plugin.spring' version '1.7.22'
-	id 'org.jetbrains.kotlin.plugin.jpa' version '1.7.22'
+	id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+	id 'org.jetbrains.kotlin.plugin.spring' version '1.9.0'
+	id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.0'
 }
 
 group = 'ru.lytvest'
@@ -38,6 +38,18 @@ dependencies {
 	implementation 'it.skrape:skrapeit:1.2.2'
 	compileOnly 'org.projectlombok:lombok:1.18.24'
 	annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+
+
+	implementation("io.ktor:ktor-client-core:2.3.7")
+	implementation("io.ktor:ktor-client-cio:2.3.7")
+	implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+	implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+	implementation("io.ktor:ktor-serialization-kotlinx-xml:2.3.7")
+	implementation("io.ktor:ktor-serialization-kotlinx-cbor:2.3.7")
+	implementation("io.ktor:ktor-serialization-kotlinx-protobuf:2.3.7")
+
+
 
 	testCompileOnly 'org.projectlombok:lombok:1.18.24'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'

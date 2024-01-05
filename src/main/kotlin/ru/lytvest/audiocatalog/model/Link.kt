@@ -1,11 +1,6 @@
 package ru.lytvest.audiocatalog.model
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
+import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
@@ -15,12 +10,21 @@ class Link {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0
 
+    @Column(length = 2000)
     var href: String = ""
 
+    @Column(length = 2000)
     var text: String = ""
+
+    @Column(length = 2000)
+    var tags: String? = ""
 
     var date: LocalDateTime = LocalDateTime.now()
 
     @ManyToOne
     lateinit var book: Book
+    override fun toString(): String {
+        return "Link(id=$id, href='$href', text='$text', tags=$tags)"
+    }
+
 }

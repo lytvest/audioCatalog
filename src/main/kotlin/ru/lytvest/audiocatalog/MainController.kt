@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import ru.lytvest.audiocatalog.model.Book
+import ru.lytvest.audiocatalog.model.Link
 import ru.lytvest.audiocatalog.repository.LinkRepository
 import ru.lytvest.audiocatalog.service.BookService
 
@@ -39,7 +40,7 @@ class MainController(
 
     @GetMapping("/audio")
     fun audio(model: Model) = run {
-        val books = bookService.topBooks()
+        val books = bookService.topAudioBooks(50)
         println("count audio books:${books.size}")
 
         model.addAttribute("list", getViewList(books))
@@ -63,6 +64,8 @@ class MainController(
 
             if (links.size > 5)
                 links = links.subList(0, 5)
+
+            links = links.map { old -> Link().apply { href = old.href.replace("\"", "") }}
 
             if (book.annotation.length > 310) {
                 book.annotation = book.annotation.slice(0..307) + "..."
