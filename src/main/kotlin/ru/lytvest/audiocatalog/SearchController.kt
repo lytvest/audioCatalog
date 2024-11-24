@@ -74,7 +74,7 @@ class SearchController(
     fun searchStart(@RequestParam num: Long): ResponseEntity<String> {
         if (count.get() == 0) {
             Thread {
-                for (id in num..num + 200L) {
+                for (id in num..num + 600L) {
                     count.set(id.toInt())
                     bookService.getById(id)?.let { book ->
                         try {
@@ -89,6 +89,9 @@ class SearchController(
                                 link.href = p["url"] ?: ""
                                 link.text = p["text"] ?: ""
                                 link.tags = p["tags"] ?: ""
+                                if (link.href.length > 255) {
+                                    link.href = link.href.slice(0..252)
+                                }
                                 log.info("save link $link")
                                 linkRepository.save(link)
                             }
@@ -120,7 +123,8 @@ class SearchController(
                 }
                 install(HttpTimeout.Plugin)
             }
-            val response = client.post("https://api.apify.com/v2/acts/apify~google-search-scraper/run-sync-get-dataset-items?token=apify_api_4oKFaSgn441tYRodelWz1J5OHH1GyZ3tU6OA") {
+
+            val response = client.post("https://api.apify.com/v2/acts/apify~google-search-scraper/run-sync-get-dataset-items?token=apify_api_IObP7EwT3kPk4a9N27Qb162TCjEkiL0PYxv9") {
                 contentType(ContentType.Application.Json)
                 setBody(mapOf(
                     "queries" to text

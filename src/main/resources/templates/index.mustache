@@ -14,7 +14,10 @@
 
 
 
-<div class="container">
+<div class="container mb-4">
+    {{#nextLink}}
+        <a href="{{nextLink}}" class="btn btn-primary m-2 w-100">Следущая страница</a>
+    {{/nextLink}}
     <div class="row">
         {{#list}}
         <div class="col-sm-3">
@@ -34,6 +37,9 @@
             </div>
         </div>
         {{/list}}
+        {{#nextLink}}
+            <a href="{{nextLink}}" class="btn btn-primary m-2">Следущая страница</a>
+        {{/nextLink}}
     </div>
 </div>
 

@@ -81,14 +81,17 @@ class BookService(
         if (link.href.lowercase().contains("au-ok")){
             score -= 0.5
         }
+        if (link.href.lowercase().contains("aume")){
+            score -= 0.5
+        }
 
 
         return score
     }
 
-    @PostConstruct
+//    @PostConstruct
     fun calcScore() {
-        for (id in 1L..780L) {
+        for (id in 1L..2730L) {
             val book = bookRepository.findById(id).get()
             val links = linkRepository.findLinksByBook(book)
 
@@ -104,6 +107,9 @@ class BookService(
             if (score >= 1.0) {
                 score = 1.0
             }
+            if (links.size <= 1) {
+                score = 0.0
+            }
 
             book.audioRating = score
             book.countFindLinks = links.size
@@ -112,15 +118,15 @@ class BookService(
         }
     }
 
-    fun topBooks(): List<Book> {
-        val page = PageRequest.of(0, 500, Sort.by(Sort.Order.desc("likes")))
-        return bookRepository.findBooksBy(page)
+    fun topBooks(page: Int): List<Book> {
+        val pageR = PageRequest.of(page, 12, Sort.by(Sort.Order.desc("likes")))
+        return bookRepository.findBooksBy(pageR)
     }
 
-    fun topAudioBooks(rating: Int): List<Book> {
+    fun topAudioBooks(rating: Int, page: Int): List<Book> {
         val ratingF = rating / 100.0
-        val page = PageRequest.of(0, 500, Sort.by(Sort.Order.desc("likes")))
-        return bookRepository.findBooksByAudioRatingGreaterThanEqual(ratingF, page)
+        val pageR = PageRequest.of(page, 12, Sort.by(Sort.Order.desc("likes")))
+        return bookRepository.findBooksByAudioRatingGreaterThanEqual(ratingF, pageR)
     }
 
     fun getById(id: Long): Book? {
