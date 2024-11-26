@@ -44,7 +44,7 @@ class MainController(
 
     @GetMapping("/audio/{page}")
     fun audio(model: Model, @PathVariable page: Int?) = run {
-        val books = bookService.topAudioBooks(70, page ?: 0)
+        val books = bookService.topAudioBooks(page ?: 0)
         println("count audio books:${books.size}")
 
         model.addAttribute("list", getViewList(books))
@@ -77,7 +77,6 @@ class MainController(
             if (book.annotation.length > 310) {
                 book.annotation = book.annotation.slice(0..307) + "..."
             }
-            book.audioRating = (book.audioRating * 100).roundToInt().toDouble()
 
             list += mapOf("book" to book, "links" to links)
         }

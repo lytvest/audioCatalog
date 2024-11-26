@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import ru.lytvest.audiocatalog.dto.BookInfo
 import ru.lytvest.audiocatalog.model.Book
 import ru.lytvest.audiocatalog.model.Link
 import ru.lytvest.audiocatalog.repository.BookRepository
@@ -19,8 +20,12 @@ class BookService(
 
     val log = LoggerFactory.getLogger(this.javaClass)
 
+    fun saveOrUpdate(bookInfo: BookInfo) {
+        saveOrUpdate(Book().apply { fillFrom(bookInfo) })
+    }
+
     fun saveOrUpdate(book: Book): Book {
-        val old = bookRepository.findBookByNameAndAuthor(book.name, book.author)
+        val old = bookRepository.findBookByNameAndAuthorAndSiteType(book.name, book.author, book.siteType)
         val book = if (old == null) {
             println("" + LocalDateTime.now() + " save "  + book)
             bookRepository.save(book)
@@ -111,9 +116,6 @@ class BookService(
                 score = 0.0
             }
 
-            book.audioRating = score
-            book.countFindLinks = links.size
-            book.lastTimeFindLinks = LocalDateTime.now()
             bookRepository.save(book)
         }
     }
@@ -123,10 +125,10 @@ class BookService(
         return bookRepository.findBooksBy(pageR)
     }
 
-    fun topAudioBooks(rating: Int, page: Int): List<Book> {
-        val ratingF = rating / 100.0
+    fun topAudioBooks(page: Int): List<Book> {
+
         val pageR = PageRequest.of(page, 12, Sort.by(Sort.Order.desc("likes")))
-        return bookRepository.findBooksByAudioRatingGreaterThanEqual(ratingF, pageR)
+        return bookRepository.findBooksByHasAudioGreaterThanEqual(true, pageR)
     }
 
     fun getById(id: Long): Book? {

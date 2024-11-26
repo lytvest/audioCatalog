@@ -22,17 +22,16 @@
         {{#list}}
         <div class="col-sm-3">
             <div class="card">
-                <img src="{{book.image}}" class="card-img-top" alt="...">
+                <img src="{{book.imageLink}}" class="card-img-top" alt="...">
                 <div class="card-body">
                     <h5 class="card-title">{{book.name}}</h5>
                     <h6 class="card-title">{{book.author}}</h6>
                     <p class="card-text">{{book.annotation}}</p>
-                    {{#book.countFindLinks}}
-                        <p class="card-text">{{book.audioRating}}% </p>
-                    {{/book.countFindLinks}}
-                    {{#links}}
-                        <a href="{{href}}" class="btn btn-outline-primary">o</a>
-                    {{/links}}
+
+                    <p class="card-text">{{book.hasAudio}} </p>
+                    <a href="{{book.link}}" class="btn btn-outline-primary">Открыть</a>
+
+
                 </div>
             </div>
         </div>

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.client.RestClient
+import ru.lytvest.audiocatalog.dto.SiteType
 import ru.lytvest.audiocatalog.model.Book
 import ru.lytvest.audiocatalog.service.BookService
 import ru.lytvest.audiocatalog.service.LitresImportService
@@ -33,16 +34,26 @@ class StartController(
     @PostConstruct
     fun init() {
 
-
+//        litres("3")
     }
 
     val count: AtomicInteger = AtomicInteger(0)
 
+
     @GetMapping("litres")
-    fun litres(@RequestParam page: String?): ResponseEntity<String> {
-        val currentPage = page?.toInt() ?: 1
-        litresImportService.parsePage("https://www.litres.ru/genre/knigi-fentezi-5018/", currentPage)
-        return ResponseEntity.ok().body("ok")
+    fun litres(@RequestParam start: String?, @RequestParam end: String?): ResponseEntity<String> {
+        val startPage = start?.toInt() ?: 1
+        val endPage = end?.toInt() ?: 10
+        if (count.get() == 0) {
+            Thread {
+                for (num in startPage..endPage) {
+                    count.set(num)
+                    litresImportService.parsePage(num)
+                }
+                count.set(0)
+            }.start()
+        }
+        return ResponseEntity.ok().body("ok, page ${count.get()}")
     }
 
     @GetMapping("testSave")
@@ -132,7 +143,7 @@ class StartController(
                                 a {
                                     findFirst {
                                         println("id: " + attribute("href"))
-                                        book.externalId = attribute("href")
+                                        book.link = attribute("href")
                                     }
                                 }
                             }
@@ -148,7 +159,7 @@ class StartController(
                                 a {
                                     findAll {
                                         println("Жанры " + map { it.text })
-                                        book.genres = "" + map { it.text }
+                                        book.tags = "" + map { it.text }
                                     }
                                 }
                             }
@@ -171,7 +182,7 @@ class StartController(
                                         findAll {
                                             forEach {
                                                 println("имя цикла: " + it.text)
-                                                book.circle = it.text
+                                                book.series = it.text
                                             }
                                         }
                                     }
@@ -204,7 +215,8 @@ class StartController(
                                 }
                             }
                         }
-                        book.image = images[i - 1]
+                        book.imageLink = images[i - 1]
+                        book.siteType = SiteType.authorToday
                         val nBook = bookService.saveOrUpdate(book)
                         sb.append("" + nBook).append("\n")
                     }

@@ -1,10 +1,9 @@
 package ru.lytvest.audiocatalog.model
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import jakarta.persistence.*
+import org.springframework.beans.BeanUtils
+import ru.lytvest.audiocatalog.dto.BookInfo
+import ru.lytvest.audiocatalog.dto.SiteType
 
 import java.time.LocalDateTime
 
@@ -15,16 +14,14 @@ class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0
 
-    var externalId: String = ""
-
     var author: String = ""
 
     @Column(length = 1000)
-    var genres: String = ""
+    var tags: String = ""
 
     var date: LocalDateTime = LocalDateTime.now()
 
-    var circle: String = ""
+    var series: String = ""
 
     @Column(length = 500)
     var name: String = ""
@@ -35,18 +32,19 @@ class Book {
 
     var comments: Long = 0
 
+    var rating: Double = 0.0
+
+    var hasAudio: Boolean = false
+
+    @Enumerated(EnumType.STRING)
+    var siteType: SiteType = SiteType.unknown
+
+    var imageLink: String = ""
+
+    var link: String = ""
+
     @Column(length = 5000)
     var annotation: String = ""
-
-    var baseSite: String = "author.today"
-
-    var image: String = ""
-
-    var lastTimeFindLinks: LocalDateTime? = null
-
-    var countFindLinks: Int = 0
-
-    var audioRating: Double = 0.0
 
     fun copyFrom(book: Book) {
         for(field in book.javaClass.fields) {
@@ -57,9 +55,9 @@ class Book {
         }
     }
 
-    override fun toString(): String {
-        return "Book(id=$id, externalId='$externalId', author='$author', genres='$genres', date=$date, circle='$circle', name='$name', watchers=$watchers, likes=$likes, comments=$comments, annotation='$annotation', baseSite='$baseSite', image='$image')"
+    fun fillFrom(bookInfo: BookInfo) {
+        BeanUtils.copyProperties(bookInfo, this, "tags")
+        tags = bookInfo.tags.joinToString(",")
     }
-
 
 }
