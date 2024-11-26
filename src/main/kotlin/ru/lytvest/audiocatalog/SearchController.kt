@@ -1,25 +1,12 @@
 package ru.lytvest.audiocatalog
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.http.ContentType
-import io.ktor.serialization.kotlinx.json.*
+
 import it.skrape.core.htmlDocument
 import it.skrape.fetcher.*
 import it.skrape.selects.ElementNotFoundException
 import it.skrape.selects.and
 import it.skrape.selects.html5.a
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -113,44 +100,45 @@ class SearchController(
         val text = text1.replace("#", "")
 
 
-        return runBlocking {
-            val client = HttpClient(CIO) {
-                install(ContentNegotiation) {
-                    json(Json {
-                        prettyPrint = true
-                        isLenient = true
-                    })
-                }
-                install(HttpTimeout.Plugin)
-            }
-
-            val response = client.post("https://api.apify.com/v2/acts/apify~google-search-scraper/run-sync-get-dataset-items?token=apify_api_IObP7EwT3kPk4a9N27Qb162TCjEkiL0PYxv9") {
-                contentType(ContentType.Application.Json)
-                setBody(mapOf(
-                    "queries" to text
-                ))
-                timeout { requestTimeoutMillis = 600000 }
-            }
-
-            log.info(response.bodyAsText())
-
-            val map: JsonArray = response.body()
-            val list = mutableListOf<Map<String, String>>()
-            map.first().jsonObject["organicResults"]?.jsonArray?.forEach{
-
-                list += mapOf(
-                    "text" to (it.jsonObject["title"]?.toString() ?: "") + (it.jsonObject["description"]?.toString() ?: ""),
-                    "url" to (it.jsonObject["url"]?.toString() ?: ""),
-                    "tags" to (it.jsonObject["emphasizedKeywords"]?.jsonArray?.joinToString() ?: ""),
-                )
-            }
-
-            list.forEach{
-
-            }
-
-            list
-        }
+//        return runBlocking {
+//            val client = HttpClient(CIO) {
+//                install(ContentNegotiation) {
+//                    json(Json {
+//                        prettyPrint = true
+//                        isLenient = true
+//                    })
+//                }
+//                install(HttpTimeout.Plugin)
+//            }
+//
+//            val response = client.post("https://api.apify.com/v2/acts/apify~google-search-scraper/run-sync-get-dataset-items?token=apify_api_IObP7EwT3kPk4a9N27Qb162TCjEkiL0PYxv9") {
+//                contentType(ContentType.Application.Json)
+//                setBody(mapOf(
+//                    "queries" to text
+//                ))
+//                timeout { requestTimeoutMillis = 600000 }
+//            }
+//
+//            log.info(response.bodyAsText())
+//
+//            val map: JsonArray = response.body()
+//            val list = mutableListOf<Map<String, String>>()
+//            map.first().jsonObject["organicResults"]?.jsonArray?.forEach{
+//
+//                list += mapOf(
+//                    "text" to (it.jsonObject["title"]?.toString() ?: "") + (it.jsonObject["description"]?.toString() ?: ""),
+//                    "url" to (it.jsonObject["url"]?.toString() ?: ""),
+//                    "tags" to (it.jsonObject["emphasizedKeywords"]?.jsonArray?.joinToString() ?: ""),
+//                )
+//            }
+//
+//            list.forEach{
+//
+//            }
+//
+//            list
+//        }
+        return listOf()
     }
 
     fun search(text: String): List<Pair<String, String>> {

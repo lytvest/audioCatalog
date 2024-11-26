@@ -1,7 +1,7 @@
 package ru.lytvest.audiocatalog
 
 import com.samskivert.mustache.Mustache
-import lombok.extern.slf4j.Slf4j
+
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -17,7 +17,7 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 
 @Controller
-@Slf4j
+
 class MainController(
     val bookService: BookService,
     val mustache: Mustache.Compiler,
