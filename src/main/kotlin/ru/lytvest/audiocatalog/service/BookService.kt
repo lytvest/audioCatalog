@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import ru.lytvest.audiocatalog.dto.BookInfo
+import ru.lytvest.audiocatalog.dto.SearchParams
 import ru.lytvest.audiocatalog.model.Book
 import ru.lytvest.audiocatalog.model.Link
 import ru.lytvest.audiocatalog.repository.BookRepository
@@ -38,6 +39,17 @@ class BookService(
 
         return book
     }
+
+    fun list(params: SearchParams): List<BookInfo> {
+        PageRequest.of(params.page, params.max, sortBy(params.sort))
+        // TODO:
+    }
+
+    fun asc() = Sort.Direction.ASC
+    fun desc() = Sort.Direction.DESC
+
+    fun sortBy(list: List<Pair<String, String>>): Sort =
+        Sort.by(list.map { Sort.Order(if (it.first == "asc") asc() else desc() , it.second) })
 
     fun calc(link: Link): Double {
         var score = 0.0
